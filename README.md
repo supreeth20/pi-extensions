@@ -2,6 +2,16 @@
 
 Extensions for the [Pi coding agent](https://github.com/earendil-works/pi).
 
+## Copilot model price labels
+
+`extensions/copilot-prices.ts` adds live Copilot rate snapshots to Pi's **existing** model picker; it does not replace the picker. Install it alongside `copilot-context.ts`. Both context limits and picker prices come from the same Copilot catalog request. Run `/copilot-context refresh`, then `/reload` if notified that labels changed.
+
+Pi currently displays model-name overrides both in picker rows and in the selected-model preview; its extension API does not expose a preview-only decoration hook.
+
+A label such as `D≤272k:1k/5k/100/1.25k L≤1.05M:2k/7.5k/200/2.5k` shows **default** and **long** tier prompt limits and rates respectively. Each group is input / output / cache read / cache write in AI credits per million tokens; `?` means unavailable. Labels refresh whenever the context extension fetches the catalog. `AIC*` and `AIC+` mark extension-managed names; existing custom names are preserved. Narrow terminals may truncate picker rows.
+
+The price extension writes name overrides in Pi's `models.json`, preserves other fields, and refuses to rewrite files containing JSON comments. Model names are also used by Pi's model pattern matching. Rate data comes from the authenticated Copilot catalog; it is not an actual charge, and discounts and account-specific billing may differ.
+
 ## Copilot context budget
 
 `extensions/copilot-context.ts` sets a local compaction budget for physical GitHub Copilot models. It fetches the signed-in account's model catalog using Pi's existing Copilot credentials and reads the default and long-context pricing boundaries.
@@ -23,10 +33,10 @@ Requires Pi with extension support and a configured GitHub Copilot provider. Tes
 git clone https://github.com/supreeth20/pi-extensions.git
 cd pi-extensions
 mkdir -p ~/.pi/agent/extensions
-cp extensions/copilot-context.ts ~/.pi/agent/extensions/
+cp extensions/copilot-context.ts extensions/copilot-prices.ts ~/.pi/agent/extensions/
 ```
 
-Run `/reload` in Pi or restart it. For Windows, copy `extensions/copilot-context.ts` to `%USERPROFILE%\.pi\agent\extensions\` and reload Pi. Updates to this repository do not automatically update an installed copy.
+Run `/reload` in Pi or restart it. For Windows, copy both extension files to `%USERPROFILE%\.pi\agent\extensions\` and reload Pi. Updates to this repository do not automatically update an installed copy.
 
 ### Important limitations
 

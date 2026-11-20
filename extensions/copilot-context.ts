@@ -83,6 +83,17 @@ export default function (pi: ExtensionAPI) {
 		}
 		const boundaries = liveBoundaries(payload);
 		cache = { key, expires: Date.now() + 5 * 60_000, boundaries };
+		// The optional price-label extension consumes the same response, without another fetch.
+		const catalogEvent: { payload: unknown; ctx: ExtensionContext; done?: Promise<number> } = { payload, ctx };
+		pi.events.emit("copilot-context:catalog", catalogEvent);
+		if (catalogEvent.done) {
+			try {
+				const changed = await catalogEvent.done;
+				if (changed && ctx.hasUI) ctx.ui.notify(`Updated ${changed} Copilot picker rate labels. Run /reload to display them.`, "info");
+			} catch (error) {
+				if (ctx.hasUI) ctx.ui.notify(`Copilot picker rates not updated: ${error instanceof Error ? error.message : String(error)}`, "warning");
+			}
+		}
 		return boundaries.get(model.id);
 	}
 
